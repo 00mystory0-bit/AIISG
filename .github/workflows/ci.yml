@@ -1,9 +1,7 @@
 name: AIISG CI
 on:
   push:
-    branches: ["main","feature/**","fix/**","release/**"]
-  pull_request:
-    branches: ["main"]
+    branches: ["main","release/**","feature/**","fix/**"]
 permissions:
   contents: read
 jobs:
