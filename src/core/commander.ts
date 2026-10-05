@@ -16,7 +16,7 @@ export class Commander {
     const agent=this.policy.choose(this.agents.list(),requiredSkills);
     this.agents.assign(agent.id,task.id);
     const result=await this.workflows.execute(task.id,async()=>{this.stop.assertRunning();return {taskId:task.id,agentId:agent.id,response:"JARVIS executed: "+goal};});
-    if(result.verification?.verified)this.agents.setStatus(agent.id,"ONLINE");
+    if(result.verification?.verified)this.agents.release(agent.id); else this.agents.setStatus(agent.id,"ERROR");
     return {...result,agentId:agent.id};
   }
 }
