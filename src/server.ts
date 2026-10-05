@@ -1,0 +1,32 @@
+import "dotenv/config";
+import express from "express";
+import cors from "cors";
+import {WebSocketServer} from "ws";
+import {createServer} from "node:http";
+import {TaskManager} from "./core/task-manager.js";
+import {AgentRegistry} from "./core/agent-registry.js";
+import {seedInitialAgents} from "./core/agent-seed.js";
+import {Commander} from "./core/commander.js";
+import {executeTool,listTools} from "./core/tools.js";
+import {RateLimiter} from "./security/rate-limiter.js";
+import {assertPermission,type Role} from "./security/access-policy.js";
+import {analyzeFinancials} from "./finance/financial-analysis.js";
+
+const app=express(); const httpServer=createServer(app);
+const ws=new WebSocketServer({server:httpServer,path:"/ws"});
+const tasks=new TaskManager(); await tasks.init(); const agents=new AgentRegistry(); seedInitialAgents(agents); agents.list().forEach(a=>agents.setStatus(a.id,"ONLINE")); const commander=new Commander(tasks,agents); const limiter=new RateLimiter();
+app.use(cors()); app.use(express.json());
+app.use((req,res,next)=>{if(!limiter.allow(req.ip||"unknown"))return res.status(429).json({error:"Rate limit exceeded"});next();});
+const roleOf=(req:express.Request):Role=>{const role=req.header("x-aiisg-role");return role==="owner"||role==="operator"||role==="observer"?role:"observer";};
+
+app.get("/health",(_req,res)=>res.json({ok:true,service:"AIISG",version:"0.1.0"}));
+app.get("/api/tools",(_req,res)=>res.json({tools:listTools()}));
+app.get("/api/tasks",(_req,res)=>res.json({tasks:tasks.list()}));
+app.get("/api/safety",(_req,res)=>res.json(commander.getSafetyStatus()));
+app.post("/api/finance/analyze",(req,res)=>{try{const periods=req.body?.periods;if(!Array.isArray(periods)||periods.length===0)return res.status(400).json({error:"periods must be a non-empty array"});res.json(analyzeFinancials(periods));}catch(e){res.status(400).json({error:e instanceof Error?e.message:"Invalid financial data"});}});
+app.post("/api/emergency-stop",async(req,res)=>{try{assertPermission(roleOf(req),"security:approve");res.json(commander.emergencyStop(typeof req.body?.reason==="string"?req.body.reason:"Owner emergency stop"));}catch(e){res.status(403).json({error:e instanceof Error?e.message:"Emergency stop denied"});}});
+app.post("/api/emergency-reset",async(req,res)=>{try{assertPermission(roleOf(req),"security:approve");res.json(commander.resetEmergencyStop());}catch(e){res.status(403).json({error:e instanceof Error?e.message:"Emergency reset denied"});}});
+app.post("/api/command",async(req,res)=>{const goal=typeof req.body?.goal==="string"?req.body.goal.trim():"";if(!goal)return res.status(400).json({error:"goal is required"});try{res.json(await commander.handle(goal,Array.isArray(req.body?.requiredSkills)?req.body.requiredSkills:[]));}catch(e){res.status(500).json({error:e instanceof Error?e.message:"Unknown error"});}});
+app.post("/api/tools/:name",async(req,res)=>{try{assertPermission(roleOf(req),"tool:execute");res.json(await executeTool(req.params.name,req.body??{}));}catch(e){res.status(403).json({error:e instanceof Error?e.message:"Tool execution denied"});}});
+ws.on("connection",socket=>{socket.send(JSON.stringify({type:"ready",service:"AIISG"}));socket.on("message",async raw=>{try{const message=JSON.parse(raw.toString()) as {type?:string;goal?:string};if(message.type!=="command"||typeof message.goal!=="string")throw new Error("Expected command");socket.send(JSON.stringify({type:"task.result",data:await commander.handle(message.goal)}));}catch(e){socket.send(JSON.stringify({type:"error",error:e instanceof Error?e.message:"Unknown error"}));}});});
+const port=Number(process.env.PORT??8787);httpServer.listen(port,()=>console.log(`AIISG listening on ${port}`));

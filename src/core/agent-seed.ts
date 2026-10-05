@@ -1,0 +1,5 @@
+import {AgentRegistry} from "./agent-registry.js";
+export function seedInitialAgents(registry:AgentRegistry){
+ const defs=[["Central Commander","commander","executive"],["Operations Manager","manager","executive"],["Project Manager","manager","executive"],["Senior Software Engineer","developer","software"],["Python Developer","developer","software"],["Web Developer","developer","software"],["QA / Testing Engineer","qa","software"],["Research Analyst","researcher","research"],["Data Analyst","researcher","research"],["Writer / Documentation Agent","writer","creative"],["UI / UX Designer","designer","creative"],["Security Guardian","security","security"],["Authorized Security Testing Agent","security","security"],["Accounting Manager","accounting","finance"],["Financial Analysis Agent","analyst","finance"],["FP&A Planning Agent","analyst","finance"],["Invoice & Billing Agent","accounting","finance"]] as const];
+ return defs.map(([name,role,department])=>registry.register({name,role,department,skills:department==="finance"?["financial-analysis","financial-ratios","cash-flow-analysis"]:[],tools:[],permissions:["read"],status:"OFFLINE",workload:0}));
+}
