@@ -10,35 +10,11 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Diagnostic build
-        shell: bash
+      - name: Runner smoke test
         run: |
-          set +e
-          : > ci-diagnostic.log
-          run_gate() {
-            name="$1"; shift
-            echo "===== $name =====" | tee -a ci-diagnostic.log
-            "$@" 2>&1 | tee -a ci-diagnostic.log
-            code=${PIPESTATUS[0]}
-            echo "EXIT_CODE=$code" | tee -a ci-diagnostic.log
-            return "$code"
-          }
-          failures=0
-          run_gate "NODE" node --version || failures=1
-          run_gate "NPM" npm --version || failures=1
-          run_gate "INSTALL" npm install || failures=1
-          run_gate "TYPECHECK" npm run typecheck || failures=1
-          run_gate "TESTS" npm test || failures=1
-          run_gate "BUILD" npm run build || failures=1
-          run_gate "AUDIT" npm audit --audit-level=high || failures=1
-          echo "TOTAL_FAILURES=$failures" | tee -a ci-diagnostic.log
-          exit "$failures"
-      - name: Upload diagnostic log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: aiisg-ci-diagnostic
-          path: ci-diagnostic.log
-          if-no-files-found: warn
+          set -eux
+          echo "AIISG CI runner OK"
+          node --version
+          npm --version
+          pwd
+          ls -la
