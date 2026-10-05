@@ -7,8 +7,8 @@
     "dev": "tsx watch src/server.ts",
     "start": "tsx src/server.ts",
     "typecheck": "tsc --noEmit",
-    "test": "tsx src/core/task-state.test.ts && tsx src/core/verification.test.ts && tsx src/core/durable-store.test.ts && tsx src/core/recovery.test.ts && tsx src/core/agent-registry.test.ts && tsx src/security/agent-capabilities.test.ts && tsx src/security/auth.test.ts && tsx src/core/assignment-policy.test.ts && tsx src/core/emergency-stop.test.ts && tsx src/core/commander.e2e.test.ts && tsx src/core/audit-log.test.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "test": "tsx src/core/task-state.test.ts && tsx src/core/verification.test.ts && tsx src/core/durable-store.test.ts && tsx src/core/recovery.test.ts && tsx src/core/agent-registry.test.ts && tsx src/security/agent-capabilities.test.ts && tsx src/security/auth.test.ts && tsx src/core/assignment-policy.test.ts && tsx src/core/emergency-stop.test.ts && tsx src/core/commander.e2e.test.ts && tsx src/core/audit-log.test.ts"
   },
   "dependencies": {
     "cors": "^2.8.5",
