@@ -7,7 +7,7 @@
     "dev": "tsx watch src/server.ts",
     "start": "tsx src/server.ts",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx src/core/task-state.test.ts",
+    "test": "tsx src/core/task-state.test.ts",
     "build": "tsc"
   },
   "dependencies": {
