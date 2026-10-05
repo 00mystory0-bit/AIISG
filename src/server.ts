@@ -1,6 +1,8 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import path from "node:path";
+import {fileURLToPath} from "node:url";
 import {WebSocketServer} from "ws";
 import {createServer} from "node:http";
 import {TaskManager} from "./core/task-manager.js";
@@ -15,12 +17,15 @@ const app=express(); const httpServer=createServer(app);
 const ws=new WebSocketServer({server:httpServer,path:"/ws"});
 const tasks=new TaskManager(); await tasks.init(); const agents=new AgentRegistry(); seedInitialAgents(agents); agents.list().forEach(a=>agents.setStatus(a.id,"ONLINE")); const commander=new Commander(tasks,agents); const limiter=new RateLimiter();
 app.use(cors()); app.use(express.json());
+const __dirname=path.dirname(fileURLToPath(import.meta.url));
+app.use(express.static(path.join(__dirname,"../public")));
 app.use((req,res,next)=>{if(!limiter.allow(req.ip||"unknown"))return res.status(429).json({error:"Rate limit exceeded"});next();});
 const roleOf=(req:express.Request):Role=>{const role=req.header("x-aiisg-role");return role==="owner"||role==="operator"||role==="observer"?role:"observer";};
 
-app.get("/health",(_req,res)=>res.json({ok:true,service:"AIISG",version:"0.1.0"}));
+app.get("/health",(_req,res)=>res.json({ok:true,service:"AIISG",version:"0.1.0",ui:"virtual-office-v1"}));
 app.get("/api/tools",(_req,res)=>res.json({tools:listTools()}));
 app.get("/api/tasks",(_req,res)=>res.json({tasks:tasks.list()}));
+app.get("/api/agents",(_req,res)=>res.json({agents:agents.list()}));
 app.get("/api/safety",(_req,res)=>res.json(commander.getSafetyStatus()));
 app.post("/api/emergency-stop",async(req,res)=>{try{assertPermission(roleOf(req),"security:approve");res.json(commander.emergencyStop(typeof req.body?.reason==="string"?req.body.reason:"Owner emergency stop"));}catch(e){res.status(403).json({error:e instanceof Error?e.message:"Emergency stop denied"});}});
 app.post("/api/emergency-reset",async(req,res)=>{try{assertPermission(roleOf(req),"security:approve");res.json(commander.resetEmergencyStop());}catch(e){res.status(403).json({error:e instanceof Error?e.message:"Emergency reset denied"});}});
