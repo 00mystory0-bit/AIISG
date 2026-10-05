@@ -1,19 +1,13 @@
-import {describe,expect,it,beforeEach} from "vitest";
+import {strict as assert} from "node:assert";
 import {authenticateToken} from "./auth.js";
 
-describe("authentication",()=>{
-  beforeEach(()=>{
-    process.env.AIISG_OWNER_API_KEY="owner-test-key";
-    process.env.AIISG_OPERATOR_API_KEY="operator-test-key";
-    process.env.AIISG_OBSERVER_API_KEY="observer-test-key";
-  });
-  it("maps configured keys to server-side roles",()=>{
-    expect(authenticateToken("owner-test-key")?.role).toBe("owner");
-    expect(authenticateToken("operator-test-key")?.role).toBe("operator");
-    expect(authenticateToken("observer-test-key")?.role).toBe("observer");
-  });
-  it("rejects missing and unknown credentials",()=>{
-    expect(authenticateToken(undefined)).toBeNull();
-    expect(authenticateToken("owner")).toBeNull();
-  });
-});
+process.env.AIISG_OWNER_API_KEY="owner-test-key";
+process.env.AIISG_OPERATOR_API_KEY="operator-test-key";
+process.env.AIISG_OBSERVER_API_KEY="observer-test-key";
+
+assert.equal(authenticateToken("owner-test-key")?.role,"owner");
+assert.equal(authenticateToken("operator-test-key")?.role,"operator");
+assert.equal(authenticateToken("observer-test-key")?.role,"observer");
+assert.equal(authenticateToken(undefined),null);
+assert.equal(authenticateToken("owner"),null);
+console.log("authentication tests passed");
