@@ -11,6 +11,7 @@ import {executeTool,listTools} from "./core/tools.js";
 import {RateLimiter} from "./security/rate-limiter.js";
 import {assertPermission,type Role} from "./security/access-policy.js";
 import {authenticateRequest,authenticateToken} from "./security/auth.js";
+import {AuditLog} from "./core/audit-log.js";
 
 const app=express();
 const httpServer=createServer(app);
@@ -22,12 +23,16 @@ seedInitialAgents(agents);
 agents.list().forEach(a=>agents.setStatus(a.id,"ONLINE"));
 const commander=new Commander(tasks,agents);
 const limiter=new RateLimiter();
+const audit=new AuditLog();
 
 const configuredOrigins=(process.env.AIISG_CORS_ORIGINS??"").split(",").map(v=>v.trim()).filter(Boolean);
 app.use(cors({origin: configuredOrigins.length ? configuredOrigins : false}));
 app.use(express.json({limit:"256kb"}));
 app.use((req,res,next)=>{
-  if(!limiter.allow(req.ip||"unknown")) return res.status(429).json({error:"Rate limit exceeded"});
+  if(!limiter.allow(req.ip||"unknown")) {
+    void audit.append({actor:"anonymous",action:"RATE_LIMITED",target:req.path,outcome:"BLOCKED",result:{ip:req.ip,method:req.method}});
+    return res.status(429).json({error:"Rate limit exceeded"});
+  }
   next();
 });
 
