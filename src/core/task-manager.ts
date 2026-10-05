@@ -8,7 +8,7 @@ export class TaskManager {
   constructor(private readonly durable=new DurableTaskStore()){}
   async init(){for(const record of await this.durable.list())this.tasks.set(record.id,record.value);}
   async create(goal:string):Promise<AgentTask>{
-    const now=new Date().toISOString(); const task={id:randomUUID(),goal,status:"PLANNED" as const,createdAt:now,updatedAt:now};
+    const now=new Date().toISOString(); const task={id:randomUUID(),goal,status:"PLANNED" as const,createdAt:now,updatedAt:now,attempts:0,maxAttempts:3,recoveryHistory:[]};
     this.tasks.set(task.id,task); await this.durable.upsert(task); return task;
   }
   async updateStatus(id:string,status:TaskStatus):Promise<AgentTask>{
@@ -16,6 +16,8 @@ export class TaskManager {
     assertTransition(current.status,status); const updated={...current,status,updatedAt:new Date().toISOString()};
     this.tasks.set(id,updated); await this.durable.upsert(updated); return updated;
   }
+  async setAttempt(id:string,attempts:number):Promise<AgentTask>{ const current=this.tasks.get(id); if(!current)throw new Error("Task not found"); if(attempts<1||attempts>current.maxAttempts)throw new Error("Invalid attempt"); return this.update(id,{attempts}); }
+  async recordRecovery(id:string,message:string):Promise<AgentTask>{ const current=this.tasks.get(id); if(!current)throw new Error("Task not found"); return this.update(id,{recoveryHistory:[...current.recoveryHistory,message]}); }
   async update(id:string,patch:Partial<Omit<AgentTask,"id"|"status">>):Promise<AgentTask>{
     const current=this.tasks.get(id); if(!current)throw new Error("Task not found");
     const updated={...current,...patch,updatedAt:new Date().toISOString()}; this.tasks.set(id,updated); await this.durable.upsert(updated); return updated;
