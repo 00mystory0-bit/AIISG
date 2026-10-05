@@ -30,3 +30,7 @@ Next: authenticated AI provider adapter, streaming voice, vision, persistent mem
 
 ## Security
 Secrets stay in environment variables. High-risk computer actions require explicit approval gates.
+
+
+### AI brain
+`POST /api/think` sends a command through the provider abstraction and Security Guard risk classification. The default local provider is intentionally non-executing; real model providers must be authenticated and connected explicitly.
