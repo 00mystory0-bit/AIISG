@@ -34,3 +34,10 @@ Secrets stay in environment variables. High-risk computer actions require explic
 
 ### AI brain
 `POST /api/think` sends a command through the provider abstraction and Security Guard risk classification. The default local provider is intentionally non-executing; real model providers must be authenticated and connected explicitly.
+
+
+## Master specification alignment
+Current implementation is an early development build, not production-ready. Implemented foundations include a security-first JARVIS gateway, task lifecycle, security events, audit logging, protected memory interface, access policy, rate limiting, a strict task state machine, and dynamic agent registry. Planned production subsystems remain explicitly unverified until implemented and tested: persistent database, durable workflows, authenticated AI providers, real tool execution, independent verification, emergency stop, browser/computer controls, accounting, scheduler, desktop/mobile clients, voice/vision, and disaster recovery.
+
+### Task state contract
+AIISG enforces: PLANNED → QUEUED → RUNNING → VERIFYING → VERIFIED → COMPLETED, with bounded failure, blocking, cancellation and escalation paths. Completion must be evidence-backed.
