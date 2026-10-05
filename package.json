@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "start": "tsx src/server.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx src/core/task-state.test.ts",
+    "build": "tsc"
   },
   "dependencies": {
     "cors": "^2.8.5",
