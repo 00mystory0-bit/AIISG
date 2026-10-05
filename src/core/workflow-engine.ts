@@ -5,7 +5,7 @@ export class WorkflowEngine {
   constructor(private readonly tasks:TaskManager,private readonly verifier=new VerificationEngine(),private readonly recovery=new RecoveryEngine(tasks)){}
   async execute(taskId:string,executor:()=>Promise<unknown>){
     try{
-      const result=await this.recovery.run(taskId,executor,{maxAttempts:3,retryable:()=>true});
+      const result=await this.recovery.run(taskId,executor,{maxAttempts:3,retryable:(error)=>!(error instanceof Error&&/permission|denied|invalid/i.test(error.message)),backoffMs:25,timeoutMs:30000});
       await this.tasks.updateStatus(taskId,"VERIFYING");
       const verification=this.verifier.verifyTaskResult(result);
       if(!verification.verified){await this.tasks.update(taskId,{error:verification.reason});await this.tasks.updateStatus(taskId,"FAILED");return {taskId,result,verification};}
