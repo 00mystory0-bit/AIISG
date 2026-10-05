@@ -11,7 +11,7 @@ import {assertPermission,type Role} from "./security/access-policy.js";
 
 const app=express(); const httpServer=createServer(app);
 const ws=new WebSocketServer({server:httpServer,path:"/ws"});
-const tasks=new TaskManager(); const commander=new Commander(tasks); const limiter=new RateLimiter();
+const tasks=new TaskManager(); await tasks.init(); const commander=new Commander(tasks); const limiter=new RateLimiter();
 app.use(cors()); app.use(express.json());
 app.use((req,res,next)=>{if(!limiter.allow(req.ip||"unknown"))return res.status(429).json({error:"Rate limit exceeded"});next();});
 const roleOf=(req:express.Request):Role=>{const role=req.header("x-aiisg-role");return role==="owner"||role==="operator"||role==="observer"?role:"observer";};
