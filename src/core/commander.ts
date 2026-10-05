@@ -20,7 +20,7 @@ export class Commander {
     const agent=this.policy.choose(this.agents.list(),requiredSkills);
     this.agents.assign(agent.id,task.id);
     await this.audit.append({actor:"commander",action:"TASK_ASSIGNED",target:task.id,outcome:"SUCCESS",result:{agentId:agent.id}});
-    const result=await this.workflows.execute(task.id,async()=>{this.stop.assertRunning();return {taskId:task.id,agentId:agent.id,response:"JARVIS executed: "+goal};});
+    const result=await this.workflows.execute(task.id,async()=>{this.stop.assertRunning();return {ok:true,taskId:task.id,agentId:agent.id,response:"JARVIS executed: "+goal};});
     if(result.verification?.verified)this.agents.release(agent.id); else this.agents.setStatus(agent.id,"ERROR");
     await this.audit.append({actor:"commander",action:result.verification?.verified?"TASK_COMPLETED":"TASK_FAILED",target:task.id,outcome:result.verification?.verified?"SUCCESS":"FAILURE",result});
     return {...result,agentId:agent.id};
