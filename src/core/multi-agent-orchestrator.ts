@@ -9,6 +9,7 @@ export class MultiAgentOrchestrator{
  constructor(private readonly agents:AgentRegistry,private readonly tasks:TaskManager,private readonly workflows=new WorkflowEngine(tasks)){}
  async execute(subtasks:Subtask[]){
   const results:Array<SubtaskResult|{taskId:string;blocked:true;reason:string}>=[]; const selected:Agent[]=[]; const reserved=new Set<string>(); const pending=new Set(subtasks.map((_,i)=>i));
+   for(const [i,s] of subtasks.entries()) for(const d of s.dependsOn??[]) if(d<0||d>=subtasks.length||d===i) throw new Error(`Invalid dependency for subtask ${i}: ${d}`);
   while(pending.size){
    const ready=[...pending].filter(i=>(subtasks[i].dependsOn??[]).every(d=>results[d]&&"result" in results[d]&&(results[d] as SubtaskResult).result && (results[d] as SubtaskResult).result.verification?.verified!==false));
    const blocked=[...pending].filter(i=>(subtasks[i].dependsOn??[]).some(d=>results[d]&&(!("result" in results[d])||((results[d] as SubtaskResult).result?.verification?.verified===false))));
