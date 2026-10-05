@@ -4,20 +4,22 @@ import type {Role} from "./access-policy.js";
 
 export interface Principal { role: Role; source: "api-key"; }
 
-const ROLE_KEYS: Array<[Role, string | undefined]> = [
-  ["owner", process.env.AIISG_OWNER_API_KEY],
-  ["operator", process.env.AIISG_OPERATOR_API_KEY],
-  ["observer", process.env.AIISG_OBSERVER_API_KEY]
-];
-
 function safeEqual(a:string,b:string) {
   const left=Buffer.from(a); const right=Buffer.from(b);
   return left.length===right.length && crypto.timingSafeEqual(left,right);
 }
 
+function configuredKeys():Array<[Role,string|undefined]> {
+  return [
+    ["owner",process.env.AIISG_OWNER_API_KEY],
+    ["operator",process.env.AIISG_OPERATOR_API_KEY],
+    ["observer",process.env.AIISG_OBSERVER_API_KEY]
+  ];
+}
+
 export function authenticateToken(token:string|undefined):Principal|null {
   if(!token) return null;
-  for(const [role,configured] of ROLE_KEYS) {
+  for(const [role,configured] of configuredKeys()) {
     if(configured && safeEqual(token,configured)) return {role,source:"api-key"};
   }
   return null;
