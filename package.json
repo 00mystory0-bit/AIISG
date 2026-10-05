@@ -7,7 +7,7 @@
     "dev": "tsx watch src/server.ts",
     "start": "tsx src/server.ts",
     "typecheck": "tsc --noEmit",
-    "test": "tsx src/core/task-state.test.ts && tsx src/core/verification.test.ts && tsx src/core/durable-store.test.ts && tsx src/core/recovery.test.ts",
+    "test": "tsx src/core/task-state.test.ts && tsx src/core/verification.test.ts && tsx src/core/durable-store.test.ts && tsx src/core/recovery.test.ts && tsx src/core/agent-registry.test.ts",
     "build": "tsc"
   },
   "dependencies": {
