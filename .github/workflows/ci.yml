@@ -1,11 +1,13 @@
 name: AIISG CI
 on:
   push:
-    branches: ["main","feature/**"]
+    branches: ["main","feature/**","fix/**"]
   pull_request:
     branches: ["main"]
+permissions:
+  contents: read
 jobs:
-  test:
+  quality:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,5 +16,7 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm install
+      - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      - run: npm audit --audit-level=high
