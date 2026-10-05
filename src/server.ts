@@ -76,7 +76,6 @@ app.post("/api/command",async(req,res)=>{
     const identity=requirePermission(req,"task:execute");
     const goal=typeof req.body?.goal==="string"?req.body.goal.trim():"";
     if(!goal) return res.status(400).json({error:"goal is required"});
-    const identity=requirePermission(req,"task:execute");
     res.json(await commander.handle(goal,Array.isArray(req.body?.requiredSkills)?req.body.requiredSkills:[],identity.role));
   } catch(e) {
     const message=e instanceof Error?e.message:"Command failed";
