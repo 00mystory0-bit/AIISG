@@ -12,9 +12,9 @@ jobs:
     steps:
       - name: Runner smoke test
         run: |
-          set -eux
-          echo "AIISG CI runner OK"
+          echo "AIISG runner online"
           node --version
           npm --version
+          git --version
           pwd
           ls -la
