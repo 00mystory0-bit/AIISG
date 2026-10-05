@@ -7,6 +7,7 @@ export class AgentRegistry {
  get(id:string){return this.agents.get(id);}
  list(){return [...this.agents.values()];}
  setStatus(id:string,status:AgentStatus){const a=this.agents.get(id);if(!a)throw new Error("Agent not found");const updated={...a,status};this.agents.set(id,updated);return updated;}
- assign(id:string,taskId:string){const a=this.agents.get(id);if(!a)throw new Error("Agent not found");return this.setStatus(id,"WORKING")&&this.update(id,{currentTask:taskId,workload:a.workload+1});}
+ assign(id:string,taskId:string){const a=this.agents.get(id);if(!a)throw new Error("Agent not found");if(a.status!=="ONLINE")throw new Error("Agent is not available");return this.update(id,{status:"WORKING",currentTask:taskId,workload:a.workload+1});}
+ release(id:string){const a=this.agents.get(id);if(!a)throw new Error("Agent not found");return this.update(id,{status:"ONLINE",currentTask:undefined});}
  update(id:string,patch:Partial<Omit<Agent,"id">>){const a=this.agents.get(id);if(!a)throw new Error("Agent not found");const updated={...a,...patch};this.agents.set(id,updated);return updated;}
 }
