@@ -15,6 +15,8 @@ const commander = new Commander(tasks);
 
 app.use(cors());
 app.use(express.json());
+app.use((req,res,next)=>{const key=req.ip||"unknown";if(!limiter.allow(key))return res.status(429).json({error:"Rate limit exceeded"});next();});
+const roleOf=(req:express.Request):Role=>{const role=req.header("x-aiisg-role");return role==="owner"||role==="operator"||role==="observer"?role:"observer";};
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true, service: "AIISG JARVIS", version: "0.1.0" });
