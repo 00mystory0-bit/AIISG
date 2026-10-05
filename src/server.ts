@@ -73,10 +73,11 @@ app.post("/api/emergency-reset",async(req,res)=>{
 });
 app.post("/api/command",async(req,res)=>{
   try {
-    requirePermission(req,"task:execute");
+    const identity=requirePermission(req,"task:execute");
     const goal=typeof req.body?.goal==="string"?req.body.goal.trim():"";
     if(!goal) return res.status(400).json({error:"goal is required"});
-    res.json(await commander.handle(goal,Array.isArray(req.body?.requiredSkills)?req.body.requiredSkills:[]));
+    const identity=requirePermission(req,"task:execute");
+    res.json(await commander.handle(goal,Array.isArray(req.body?.requiredSkills)?req.body.requiredSkills:[],identity.role));
   } catch(e) {
     const message=e instanceof Error?e.message:"Command failed";
     res.status(message==="Authentication required"?401:403).json({error:message});
@@ -107,7 +108,7 @@ ws.on("connection",socket=>{
       }
       if(message.type!=="command" || typeof message.goal!=="string") throw new Error("Expected command");
       assertPermission(identity.role,"task:execute");
-      socket.send(JSON.stringify({type:"task.result",data:await commander.handle(message.goal)}));
+      socket.send(JSON.stringify({type:"task.result",data:await commander.handle(message.goal,[],identity.role)}));
     } catch(e) {
       socket.send(JSON.stringify({type:"error",error:e instanceof Error?e.message:"Unknown error"}));
     }
