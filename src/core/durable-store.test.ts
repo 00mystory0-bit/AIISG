@@ -1,0 +1,12 @@
+import {strict as assert} from "node:assert";
+import {rm} from "node:fs/promises";
+import {DurableTaskStore} from "./durable-task-store.js";
+await rm("data",{recursive:true,force:true});
+const store=new DurableTaskStore();
+const task={id:"test-task",goal:"persist",status:"PLANNED" as const,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+await store.upsert(task);
+const records=await store.list();
+assert.equal(records.length,1);
+assert.equal(records[0].value.id,"test-task");
+await rm("data",{recursive:true,force:true});
+console.log("durable store tests passed");
